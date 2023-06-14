@@ -26,6 +26,7 @@ func DecodeInput(tx []byte, start time.Time) {
 	for i := int64(0); i < pathCount.Int64()-1; i++ {
 		result.path[i] = make([]byte, 32)
 		copy(result.path[i], tx[128+i*32:128+(i+1)*32])
+		
 	}
 
 

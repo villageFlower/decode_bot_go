@@ -3,10 +3,7 @@ package decode
 import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"strings"
-	"os"
 	"log"
-	"io/ioutil"
 	"time"
 )
 
@@ -37,19 +34,8 @@ func decodeTransactionInputData(contractABI *abi.ABI, data []byte, start time.Ti
 	return inputsMap
 }
 
-func DecodeContract(txInput []byte) (result map[string]interface{}) {
-	// load contract ABI
+func DecodeContract(abi abi.ABI, txInput []byte) (result map[string]interface{}) {
 	start := time.Now()
-	contactAbi, err := os.Open("./decode/abi.json")
-	if err != nil {
-    	log.Fatal(err)
-	}
-	out, _ := ioutil.ReadAll(contactAbi)
-	defer contactAbi.Close()
-	abi, err := abi.JSON(strings.NewReader(string(out)))
-	if err != nil {
-    	log.Fatal(err)
-	}
 	result = decodeTransactionInputData(&abi, txInput, start)
 	return result
 }

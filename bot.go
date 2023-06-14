@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"log"
 	"simon/decode"
-
+	"strings"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient/gethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+	"io/ioutil"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"os"
 )
 
 func getCurrentClient() *gethclient.Client {
@@ -27,13 +30,26 @@ func main() {
 
 	client := getCurrentClient()
 
-	
 	txCh := make(chan *types.Transaction, txChCap)
 	sub, err := client.SubscribeFullPendingTransactions(context.Background(), txCh)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer sub.Unsubscribe()
+
+	// load contract ABI
+
+	contactAbi, err := os.Open("./decode/abi.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	out, _ := ioutil.ReadAll(contactAbi)
+	defer contactAbi.Close()
+	abi, err := abi.JSON(strings.NewReader(string(out)))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	for {
 		select {
 		case tx := <-txCh:
@@ -41,8 +57,9 @@ func main() {
 			if tx.To() != nil {
 				if tx.To().String() == contractAddress {
 					fmt.Printf("Swap found, decoding has: %v\n", tx.Hash())
-					decode.DecodeContract(tx.Data())
-					
+
+					decode.DecodeContract(abi, tx.Data())
+
 				}
 			}
 
